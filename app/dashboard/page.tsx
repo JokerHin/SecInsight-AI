@@ -2,10 +2,10 @@
 import { VulnerabilityTable } from "@/components/VulnerabilityTable";
 import { RiskChart } from "@/components/RiskChart";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 
-export default function Dashboard() {
+function DashboardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [analysis, setAnalysis] = useState<any>(null);
@@ -188,5 +188,22 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-cyan-900 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-cyan-300 text-lg">Loading dashboard...</p>
+          </div>
+        </div>
+      }
+    >
+      <DashboardContent />
+    </Suspense>
   );
 }
