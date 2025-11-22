@@ -1,33 +1,111 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🛡️ SecInsight AI - Intelligent DevSecOps Assistant
 
-## Getting Started
+An AI-powered security vulnerability analysis dashboard that helps teams understand, prioritize, and remediate security issues efficiently.
 
-First, run the development server:
+## ✨ Features
+
+- 🤖 **AI-Powered Analysis**: Uses Google Gemini to analyze security vulnerabilities
+- 📊 **Smart Prioritization**: Assigns priority scores (1-10) based on actual risk
+- 🔍 **Deep Insights**: Provides context-aware explanations and false positive likelihood
+- ⚡ **One-Click Remediation**: Copy-paste ready fixes and upgrade commands
+- 📈 **Visual Dashboard**: Interactive charts and tables with sorting/filtering
+- 🎯 **Multi-Tool Support**: Works with Snyk, Trivy, npm audit, ScoutSuite, Semgrep, Dependabot, and more
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18+
+- Google AI Studio API Key ([Get one here](https://aistudio.google.com/app/apikey))
+
+### Installation
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Make sure `.env.local` file exists in the root directory with your Google AI API key:
+
+```env
+GOOGLE_AI_API_KEY=your_api_key_here
+```
+
+3. Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📝 Usage
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. Upload CSV File
 
-## Learn More
+Navigate to the upload page and drag-and-drop your security scan CSV file. The CSV should have columns like:
 
-To learn more about Next.js, take a look at the following resources:
+- Title (vulnerability name)
+- Severity (Critical/High/Medium/Low)
+- Package (affected package name)
+- CVE (CVE identifier, optional)
+- Description
+- Affected File (optional)
+- Fix/Remediation (optional)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Sample CSV included at** `/public/sample-vulnerabilities.csv`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 2. AI Analysis
+
+The system will:
+
+- Parse your CSV using PapaParse
+- Send data to Google Gemini for analysis
+- Generate priority scores and insights
+- Identify false positive risks
+- Provide actionable remediation steps
+
+### 3. View Dashboard
+
+The dashboard displays:
+
+- **Summary Cards**: Total counts by severity
+- **Charts**: Severity distribution and priority score distribution
+- **Top Packages**: Most affected packages
+- **Vulnerability Table**: Sortable, filterable table with detailed information
+
+## 🏗️ Project Structure
+
+```
+security-dashboard/
+├── app/
+│   ├── api/analyze/route.ts      # CSV processing API
+│   ├── dashboard/page.tsx         # Dashboard page
+│   ├── lib/gemini.ts              # Google Gemini integration
+│   ├── upload/page.tsx            # Upload page
+│   └── page.tsx                   # Home page
+├── components/
+│   ├── UploadZone.tsx             # File upload component
+│   ├── VulnerabilityTable.tsx     # Interactive table
+│   └── RiskChart.tsx              # Charts and visualizations
+└── public/
+    └── sample-vulnerabilities.csv # Sample data
+```
+
+## 🔧 Tech Stack
+
+- **Framework**: Next.js 15 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS 4
+- **AI**: Google Gemini 1.5 Pro
+- **CSV Parsing**: PapaParse
+- **Charts**: Recharts
+- **Tables**: TanStack Table
+
+## 🎯 Supported Security Tools
+
+Works with CSV exports from: Snyk, Trivy, npm audit, ScoutSuite, Semgrep, Dependabot, OWASP ZAP, Bandit, and more!
 
 ## Deploy on Vercel
 
