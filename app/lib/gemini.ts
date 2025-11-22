@@ -58,7 +58,12 @@ Return top 15-30 critical issues. Be concise.
     const response = await result.response;
     const text = response.text();
 
+    console.log("Gemini Response length:", text.length);
     console.log("Gemini Response (first 500 chars):", text.substring(0, 500));
+
+    if (!text || text.trim().length === 0) {
+      throw new Error("Empty response from Gemini");
+    }
 
     // Clean and parse JSON - handle markdown code blocks
     let jsonText = text.trim();
@@ -70,23 +75,54 @@ Return top 15-30 critical issues. Be concise.
       jsonText = jsonText.replace(/```\n?/g, "").replace(/\n?```$/g, "");
     }
 
-    // Extract JSON object
+    // Extract JSON object - try to find complete JSON
     const jsonMatch = jsonText.match(/{[\s\S]*}/);
     if (!jsonMatch) {
-      console.error("No JSON found in response:", text);
-      throw new Error("No valid JSON from Gemini");
+      console.error("No JSON found in response. Full response:", text);
+      throw new Error("AI did not return valid JSON. Please try again.");
     }
 
-    const parsed = JSON.parse(jsonMatch[0]);
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonMatch[0]);
+    } catch (parseError) {
+      console.error("JSON parse error:", parseError);
+      console.error("Attempted to parse:", jsonMatch[0].substring(0, 500));
+      throw new Error("AI returned malformed JSON. Please try again.");
+    }
 
     // Validate structure
     if (!parsed.summary || !parsed.prioritizedIssues) {
-      throw new Error("Invalid JSON structure from Gemini");
+      console.error("Invalid structure:", parsed);
+      throw new Error(
+        "AI returned incomplete data structure. Please try again."
+      );
     }
+
+    // Ensure summary has all required fields with defaults
+    parsed.summary = {
+      critical: parsed.summary.critical || 0,
+      high: parsed.summary.high || 0,
+      medium: parsed.summary.medium || 0,
+      low: parsed.summary.low || 0,
+      total: parsed.summary.total || parsed.prioritizedIssues.length || 0,
+    };
 
     return parsed;
   } catch (error: any) {
     console.error("Gemini analysis error:", error);
+
+    // Check if it's an API error
+    if (error.message?.includes("API key")) {
+      throw new Error("Invalid API key. Please check your Google AI API key.");
+    }
+    if (
+      error.message?.includes("quota") ||
+      error.message?.includes("rate limit")
+    ) {
+      throw new Error("API rate limit exceeded. Please try again in a moment.");
+    }
+
     throw new Error(`AI analysis failed: ${error.message}`);
   }
 }

@@ -38,7 +38,15 @@ export default function UploadPage() {
         body: formData,
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch (jsonError) {
+        console.error("Failed to parse response:", jsonError);
+        setError("Server returned invalid response. Please try again.");
+        setIsAnalyzing(false);
+        return;
+      }
 
       if (res.ok) {
         setProgress("Analysis complete! Redirecting...");
@@ -50,7 +58,11 @@ export default function UploadPage() {
         setIsAnalyzing(false);
       }
     } catch (err: any) {
-      setError(err.message || "Network error occurred");
+      console.error("Upload error:", err);
+      setError(
+        err.message ||
+          "Network error occurred. Please check your connection and try again."
+      );
       setIsAnalyzing(false);
     }
   };

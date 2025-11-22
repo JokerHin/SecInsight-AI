@@ -132,9 +132,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ analysisId });
   } catch (error: any) {
     console.error("Analysis error:", error);
+    console.error("Error stack:", error.stack);
+
+    // Return more specific error messages
+    let errorMessage = "Failed to analyze CSV file";
+
+    if (error.message?.includes("timeout")) {
+      errorMessage =
+        "Analysis took too long. Please try with a smaller CSV file or try again.";
+    } else if (error.message?.includes("API key")) {
+      errorMessage =
+        "Invalid Google AI API key. Please check server configuration.";
+    } else if (
+      error.message?.includes("quota") ||
+      error.message?.includes("rate limit")
+    ) {
+      errorMessage =
+        "API rate limit reached. Please try again in a few minutes.";
+    } else if (error.message?.includes("JSON")) {
+      errorMessage = "AI returned invalid data format. Please try again.";
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
     return NextResponse.json(
       {
-        error: error.message || "Failed to analyze CSV",
+        error: errorMessage,
         details: error.toString(),
       },
       { status: 500 }
