@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { getHistory, deleteFromHistory } from "@/app/lib/history";
 
+// Configure route for Node.js runtime (required for fs operations)
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const history = getHistory();

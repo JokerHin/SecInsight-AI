@@ -6,6 +6,10 @@ import path from "path";
 import { randomBytes } from "crypto";
 import { addToHistory } from "@/app/lib/history";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
 // Store analysis results temporarily (in production, use Redis or database)
 const analysisCache = new Map<string, any>();
 
@@ -22,7 +26,6 @@ function saveAnalysisToFile(analysisId: string, data: any) {
   try {
     const filePath = path.join(STORAGE_DIR, `${analysisId}.json`);
     fs.writeFileSync(filePath, JSON.stringify(data), "utf-8");
-    console.log("Saved analysis to file:", filePath);
   } catch (error) {
     console.error("Error saving analysis to file:", error);
   }
@@ -34,7 +37,6 @@ function loadAnalysisFromFile(analysisId: string): any | null {
     const filePath = path.join(STORAGE_DIR, `${analysisId}.json`);
     if (fs.existsSync(filePath)) {
       const data = fs.readFileSync(filePath, "utf-8");
-      console.log("Loaded analysis from file:", filePath);
       return JSON.parse(data);
     }
   } catch (error) {

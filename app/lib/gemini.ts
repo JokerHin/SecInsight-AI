@@ -1,4 +1,3 @@
-// src/lib/gemini.ts
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
@@ -57,9 +56,6 @@ Return top 15-30 critical issues. Be concise.
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
-
-    console.log("Gemini Response length:", text.length);
-    console.log("Gemini Response (first 500 chars):", text.substring(0, 500));
 
     if (!text || text.trim().length === 0) {
       throw new Error("Empty response from Gemini");
