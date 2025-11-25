@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const history = getHistory();
+    const history = await getHistory();
     return NextResponse.json({ history });
   } catch (error) {
     console.error("Error getting history:", error);
@@ -30,7 +30,7 @@ export async function DELETE(request: Request) {
       );
     }
 
-    deleteFromHistory(id);
+    await deleteFromHistory(id);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting history item:", error);

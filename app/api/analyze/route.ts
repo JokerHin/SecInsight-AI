@@ -1,49 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import Papa from "papaparse";
 import { analyzeWithGemini } from "@/app/lib/gemini";
-import fs from "fs";
-import path from "path";
 import { randomBytes } from "crypto";
 import { addToHistory } from "@/app/lib/history";
+import {
+  saveAnalysis,
+  getAnalysis,
+  initializeDatabase,
+} from "@/app/lib/database";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-// Store analysis results temporarily (in production, use Redis or database)
+// Initialize database on module load
+initializeDatabase().catch(console.error);
+
+// Store analysis results temporarily in memory for quick access
 const analysisCache = new Map<string, any>();
-
-// File-based storage directory
-const STORAGE_DIR = path.join(process.cwd(), ".analysis-cache");
-
-// Ensure storage directory exists
-if (!fs.existsSync(STORAGE_DIR)) {
-  fs.mkdirSync(STORAGE_DIR, { recursive: true });
-}
-
-// Helper to save analysis to file
-function saveAnalysisToFile(analysisId: string, data: any) {
-  try {
-    const filePath = path.join(STORAGE_DIR, `${analysisId}.json`);
-    fs.writeFileSync(filePath, JSON.stringify(data), "utf-8");
-  } catch (error) {
-    console.error("Error saving analysis to file:", error);
-  }
-}
-
-// Helper to load analysis from file
-function loadAnalysisFromFile(analysisId: string): any | null {
-  try {
-    const filePath = path.join(STORAGE_DIR, `${analysisId}.json`);
-    if (fs.existsSync(filePath)) {
-      const data = fs.readFileSync(filePath, "utf-8");
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error("Error loading analysis from file:", error);
-  }
-  return null;
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -107,12 +81,12 @@ export async function POST(request: NextRequest) {
     // Generate unique ID for this analysis
     const analysisId = randomBytes(16).toString("hex");
 
-    // Store in both cache and file
+    // Store in both cache and database
     analysisCache.set(analysisId, analysis);
-    saveAnalysisToFile(analysisId, analysis);
+    await saveAnalysis(analysisId, analysis);
 
     // Add to history
-    addToHistory({
+    await addToHistory({
       id: analysisId,
       timestamp: Date.now(),
       fileName: file.name,
@@ -120,7 +94,7 @@ export async function POST(request: NextRequest) {
       summary: analysis.summary,
     });
 
-    // Set timeout to clear from memory cache only (file persists)
+    // Set timeout to clear from memory cache only (database persists)
     setTimeout(() => analysisCache.delete(analysisId), 60 * 60 * 1000);
 
     console.log("Created analysis with ID:", analysisId);
@@ -185,20 +159,20 @@ export async function GET(request: NextRequest) {
   // Try memory cache first
   let analysis = analysisCache.get(analysisId);
 
-  // If not in cache, try loading from file
+  // If not in cache, try loading from database
   if (!analysis) {
-    console.log("Not in memory cache, trying file...");
-    analysis = loadAnalysisFromFile(analysisId);
+    console.log("Not in memory cache, trying database...");
+    analysis = await getAnalysis(analysisId);
 
     if (analysis) {
       // Restore to memory cache
       analysisCache.set(analysisId, analysis);
-      console.log("Restored analysis to memory cache from file");
+      console.log("Restored analysis to memory cache from database");
     }
   }
 
   if (!analysis) {
-    console.log("Analysis not found in cache or file for ID:", analysisId);
+    console.log("Analysis not found in cache or database for ID:", analysisId);
     return NextResponse.json(
       { error: "Analysis not found or expired" },
       { status: 404 }

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@sqlitecloud/drivers": "^1.0.653",
     "@tanstack/react-table": "^8.21.3",
     "better-sqlite3": "^12.4.5",
     "next": "16.0.3",
